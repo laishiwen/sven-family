@@ -1,0 +1,228 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis-server
+    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - sven-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sven_local_pg_2026}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - sven-net
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  community-backend:
+    build:
+      context: ./community-backend
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-}
+    container_name: community-backend
+    ports:
+      - "127.0.0.1:50051:50051"
+    environment:
+      APP_MODE: public
+      APP_HOST: 0.0.0.0
+      APP_PORT: 50051
+      APP_RELOAD: "false"
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-sven_local_pg_2026}@postgres:5432/community
+      REDIS_URL: redis://redis:6379/1
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
+      COMMUNITY_CORS_ORIGINS: "${COMMUNITY_CORS_ORIGINS:?COMMUNITY_CORS_ORIGINS is required}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - sven-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "from urllib.request import urlopen; urlopen('http://localhost:50051/health')",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+  community-admin:
+    build:
+      context: ./community-backend
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-}
+    container_name: community-admin
+    command: ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "50052"]
+    expose:
+      - "50052"
+    environment:
+      APP_MODE: admin
+      APP_HOST: 0.0.0.0
+      APP_PORT: 50052
+      APP_RELOAD: "false"
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-sven_local_pg_2026}@postgres:5432/community
+      REDIS_URL: redis://redis:6379/1
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      community-backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - sven-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "from urllib.request import urlopen; urlopen('http://localhost:50052/health')",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+  admin-backend:
+    build:
+      context: ./admin-backend
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-}
+    container_name: admin-backend
+    command: ["python", "run.py"]
+    ports:
+      - "127.0.0.1:8001:8001"
+    environment:
+      HOST: 0.0.0.0
+      API_PORT: 8001
+      API_RELOAD: "false"
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-sven_local_pg_2026}@postgres:5432/butler
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
+      ADMIN_CORS_ORIGINS: "${ADMIN_CORS_ORIGINS:?ADMIN_CORS_ORIGINS is required}"
+      COMMUNITY_BRIDGE_URL: ${COMMUNITY_BRIDGE_URL:-http://community-admin:50052}
+      CRAWLER_SERVICE_URL: ${CRAWLER_SERVICE_URL:-http://crawler:9100}
+      STATS_SERVICE_URL: ${STATS_SERVICE_URL:-http://stats-service:8002}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      community-admin:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - sven-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "from urllib.request import urlopen; urlopen('http://localhost:8001/health')",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+  crawler:
+    build:
+      context: ./crawler
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-}
+    container_name: crawler
+    expose:
+      - "9100"
+    environment:
+      COMMUNITY_BRIDGE_URL: ${COMMUNITY_BRIDGE_URL:-http://community-admin:50052}
+      REDIS_URL: redis://redis:6379/0
+      CRAWLER_LOG_LEVEL: INFO
+    depends_on:
+      redis:
+        condition: service_healthy
+      community-admin:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - sven-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "from urllib.request import urlopen; urlopen('http://localhost:9100/health')",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+  stats-service:
+    build:
+      context: ./stats-service
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-}
+    container_name: stats-service
+    ports:
+      - "127.0.0.1:8002:8002"
+    environment:
+      HOST: 0.0.0.0
+      API_PORT: 8002
+      API_RELOAD: "false"
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-sven_local_pg_2026}@postgres:5432/butler
+      STATS_CORS_ORIGINS: "${STATS_CORS_ORIGINS:?STATS_CORS_ORIGINS is required}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - sven-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "from urllib.request import urlopen; urlopen('http://localhost:8002/health')",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  sven-net:
+    driver: bridge

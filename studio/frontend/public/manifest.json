@@ -1,0 +1,13 @@
+{
+  "name": "Sven Studio",
+  "short_name": "Sven",
+  "description": "Desktop AI Agent — local-first AI development platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
+  "orientation": "any",
+  "icons": [
+    { "src": "/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

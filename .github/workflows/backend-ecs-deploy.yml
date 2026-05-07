@@ -1,0 +1,73 @@
+name: Deploy Backend To ECS
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - backend/**
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      AUTO_CONFIGURE_NGINX: ${{ secrets.AUTO_CONFIGURE_NGINX }}
+      CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Copy backend files to ECS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "backend"
+          target: "${{ secrets.ECS_DEPLOY_PATH || '/opt/sven' }}"
+          overwrite: true
+
+      - name: Deploy on ECS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true
+          command_timeout: 60m
+          script: |
+            set -euo pipefail
+            DEPLOY_PATH="${{ secrets.ECS_DEPLOY_PATH || '/opt/sven' }}"
+            export PIP_INDEX_URL='${{ secrets.PIP_INDEX_URL }}'
+            export JWT_SECRET_KEY='${{ secrets.JWT_SECRET_KEY }}'
+            export COMMUNITY_CORS_ORIGINS='${{ secrets.COMMUNITY_CORS_ORIGINS }}'
+            export ADMIN_CORS_ORIGINS='${{ secrets.ADMIN_CORS_ORIGINS }}'
+            export STATS_CORS_ORIGINS='${{ secrets.STATS_CORS_ORIGINS }}'
+            cd "${DEPLOY_PATH}/backend"
+            chmod +x ./scripts/deploy_prod.sh
+            ./scripts/deploy_prod.sh
+
+      - name: Configure HTTPS on ECS (optional)
+        if: ${{ env.AUTO_CONFIGURE_NGINX == 'true' && env.CERTBOT_EMAIL != '' }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true
+          command_timeout: 30m
+          script: |
+            set -euo pipefail
+            DEPLOY_PATH="${{ secrets.ECS_DEPLOY_PATH || '/opt/sven' }}"
+            cd "${DEPLOY_PATH}/backend"
+            chmod +x ./scripts/setup_nginx_https.sh
+            if command -v sudo >/dev/null 2>&1; then
+              sudo -E CERTBOT_EMAIL="${{ env.CERTBOT_EMAIL }}" ./scripts/setup_nginx_https.sh
+            else
+              CERTBOT_EMAIL="${{ env.CERTBOT_EMAIL }}" ./scripts/setup_nginx_https.sh
+            fi

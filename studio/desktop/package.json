@@ -1,0 +1,126 @@
+{
+  "name": "@sven-studio/desktop",
+  "version": "1.0.0",
+  "private": true,
+  "productName": "Sven Studio",
+  "description": "Sven Studio",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "concurrently \"tsc -p tsconfig.json --watch\" \"wait-on dist/main.js tcp:${VITE_DEV_PORT:-3000} && ELECTRON_DEV=true electron .\"",
+    "build": "tsc -p tsconfig.json",
+    "electron": "electron .",
+    "electron:dev": "ELECTRON_DEV=true electron .",
+    "start": "concurrently \"pnpm dev\" \"wait-on tcp:${VITE_DEV_PORT:-3000} && ELECTRON_DEV=true electron .\"",
+    "prepare:runtime:current": "node ./scripts/prepare-runtime-current.mjs",
+    "precheck:runtime:current": "node ./scripts/precheck-runtime.mjs --current --enforce",
+    "precheck:runtime:report": "node ./scripts/precheck-runtime.mjs --all",
+    "dist:local:verify": "pnpm dist:local && pnpm verify:package",
+    "precheck:runtime": "node ./scripts/precheck-runtime.mjs --all --enforce",
+    "prepare:assets": "pnpm --filter @sven-studio/web build && pnpm build",
+    "pack": "electron-builder --dir",
+    "predist": "pnpm precheck:runtime:current && pnpm prepare:assets",
+    "dist": "electron-builder --publish never",
+    "dist:local": "pnpm predist && electron-builder --publish never",
+    "dist:mac": "pnpm predist && electron-builder --mac",
+    "dist:win": "pnpm predist && electron-builder --win",
+    "dist:linux": "pnpm predist && electron-builder --linux",
+    "verify:package": "node ./scripts/verify-package.mjs"
+  },
+  "dependencies": {
+    "@xenova/transformers": "^2.17.2",
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "electron": "33.4.11",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.0",
+    "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.agentstudio.desktop",
+    "productName": "Sven Studio",
+    "copyright": "Copyright © 2025 Sven Studio",
+    "files": [
+      "dist/**/*",
+      "assets/**/*",
+      "build/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend",
+        "to": "api",
+        "filter": [
+          "**/*",
+          "!node_modules/**",
+          "!**/__pycache__/**",
+          "!**/*.pyc"
+        ]
+      },
+      {
+        "from": "../frontend/dist",
+        "to": "web-dist",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "runtime",
+        "to": "runtime",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.icns",
+      "identity": null,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ]
+    },
+    "dmg": {
+      "icon": "assets/icon.icns"
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "icon": "assets/icon.png",
+      "category": "Development",
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico"
+    }
+  }
+}

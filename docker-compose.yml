@@ -1,0 +1,224 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis-server-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_dev:/data
+    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-db-dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+
+  community-backend:
+    build:
+      context: ./backend/community-backend
+    container_name: community-backend-dev
+    command: ["python", "run.py"]
+    ports:
+      - "50051:50051"
+    environment:
+      APP_MODE: public
+      APP_HOST: 0.0.0.0
+      APP_PORT: 50051
+      DATABASE_URL: postgresql+asyncpg://postgres:123456@postgres:5432/community
+      JWT_SECRET_KEY: change-me-in-production
+      COMMUNITY_CORS_ORIGINS: '["http://localhost:3002","http://localhost:5174"]'
+    volumes:
+      - ./backend/community-backend:/app
+    depends_on:
+      - postgres
+
+  community-admin:
+    build:
+      context: ./backend/community-backend
+    container_name: community-admin-dev
+    command:
+      [
+        "uvicorn",
+        "server:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "50052",
+        "--reload",
+      ]
+    expose:
+      - "50052"
+    environment:
+      APP_MODE: admin
+      APP_HOST: 0.0.0.0
+      APP_PORT: 50052
+      DATABASE_URL: postgresql+asyncpg://postgres:123456@postgres:5432/community
+      JWT_SECRET_KEY: change-me-in-production
+    volumes:
+      - ./backend/community-backend:/app
+    depends_on:
+      - postgres
+
+  admin-backend:
+    build:
+      context: ./backend/admin-backend
+    container_name: admin-backend-dev
+    command: ["python", "run.py"]
+    ports:
+      - "8001:8001"
+    environment:
+      HOST: 0.0.0.0
+      API_PORT: 8001
+      API_RELOAD: "true"
+      DATABASE_URL: postgresql+asyncpg://postgres:123456@postgres:5432/butler
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: change-me-in-production
+      ADMIN_CORS_ORIGINS: '["http://localhost:5174","http://localhost:3002"]'
+      COMMUNITY_BRIDGE_URL: http://community-admin:50052
+      CRAWLER_SERVICE_URL: http://crawler:9100
+      STATS_SERVICE_URL: http://stats-service:8002
+    volumes:
+      - ./backend/admin-backend:/app
+    depends_on:
+      - postgres
+      - redis
+      - community-admin
+      - crawler
+      - stats-service
+
+  crawler:
+    build:
+      context: ./backend/crawler
+    container_name: crawler-dev
+    command: ["python", "run.py"]
+    ports:
+      - "9100:9100"
+    environment:
+      COMMUNITY_BRIDGE_URL: http://community-admin:50052
+      REDIS_URL: redis://redis:6379/0
+      CRAWLER_LOG_LEVEL: INFO
+    volumes:
+      - ./backend/crawler:/app
+    depends_on:
+      - postgres
+      - redis
+      - community-admin
+
+  stats-service:
+    build:
+      context: ./backend/stats-service
+    container_name: stats-service-dev
+    command: ["python", "run.py"]
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:123456@postgres:5432/butler
+      STATS_CORS_ORIGINS: '["http://localhost:3000","http://localhost:3001","http://localhost:3002","http://localhost:5174"]'
+    volumes:
+      - ./backend/stats-service:/app
+    depends_on:
+      - postgres
+
+  admin-frontend:
+    image: node:22-alpine
+    container_name: admin-frontend-dev
+    working_dir: /app
+    command: sh -c "corepack enable && pnpm install --no-frozen-lockfile && pnpm dev"
+    ports:
+      - "5174:5174"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8001
+      VITE_PROXY_TARGET: http://admin-backend:8001
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+
+    volumes:
+      - ./frontend/admin-frontend:/app
+      - admin_frontend_node_modules:/app/node_modules
+
+  community-frontend:
+    image: node:22-alpine
+    container_name: community-frontend-dev
+    working_dir: /app
+    command: sh -c "corepack enable && pnpm install --no-frozen-lockfile && pnpm dev"
+    ports:
+      - "3002:3002"
+    environment:
+      NEXT_PUBLIC_BRIDGE_API_URL: http://localhost:50051
+      BRIDGE_API_URL: http://community-backend:50051
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+
+    volumes:
+      - ./frontend/community:/app
+      - community_frontend_node_modules:/app/node_modules
+
+  site-frontend:
+    image: node:22-alpine
+    container_name: site-frontend-dev
+    working_dir: /app
+    command: sh -c "corepack enable && pnpm install --no-frozen-lockfile && pnpm dev"
+    ports:
+      - "3001:3001"
+    environment:
+      NEXT_PUBLIC_STATS_API_URL: http://localhost:8002
+      STATS_API_URL: http://stats-service:8002
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+
+    volumes:
+      - ./frontend/site:/app
+      - site_frontend_node_modules:/app/node_modules
+
+  studio-backend:
+    build:
+      context: ./studio/backend
+    container_name: studio-backend-dev
+    command: ["python", "run.py"]
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: development
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      APP_DATA_DIR: /app/data
+      APP_LOG_DIR: /app/logs
+    volumes:
+      - ./studio/backend:/app
+      - studio_data_dev:/app/data
+      - studio_logs_dev:/app/logs
+
+  studio-web:
+    image: node:22-alpine
+    container_name: studio-web-dev
+    working_dir: /app
+    command: sh -c "corepack enable && pnpm install --no-frozen-lockfile && pnpm dev"
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+      VITE_PROXY_TARGET: http://studio-backend:8000
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+
+    volumes:
+      - ./studio/frontend:/app
+      - studio_frontend_node_modules:/app/node_modules
+    depends_on:
+      - studio-backend
+
+volumes:
+  postgres_data_dev:
+  redis_data_dev:
+  admin_frontend_node_modules:
+  community_frontend_node_modules:
+  site_frontend_node_modules:
+  studio_frontend_node_modules:
+  studio_data_dev:
+  studio_logs_dev:

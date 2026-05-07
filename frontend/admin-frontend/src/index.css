@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind utilities;
+@tailwind components;
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+@layer base {
+  :root {
+    --background: 40 8% 98%;
+    --foreground: 45 6% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 45 6% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 45 6% 9%;
+    --primary: 38 92% 43%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 10% 95%;
+    --secondary-foreground: 45 6% 9%;
+    --muted: 40 10% 95%;
+    --muted-foreground: 40 3% 40%;
+    --accent: 40 10% 95%;
+    --accent-foreground: 45 6% 9%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 5% 90%;
+    --input: 40 5% 90%;
+    --ring: 38 92% 43%;
+    --radius: 0.625rem;
+    --sidebar: 40 10% 95%;
+    --sidebar-foreground: 45 6% 9%;
+    --sidebar-border: 40 5% 90%;
+    --sidebar-accent: 40 8% 90%;
+    --sidebar-accent-foreground: 45 6% 9%;
+    --sidebar-primary: 38 92% 43%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-ring: 38 92% 43%;
+  }
+
+  .dark {
+    --background: 40 5% 6%;
+    --foreground: 40 10% 96%;
+    --card: 40 3% 10%;
+    --card-foreground: 40 10% 96%;
+    --popover: 40 3% 10%;
+    --popover-foreground: 40 10% 96%;
+    --primary: 38 90% 48%;
+    --primary-foreground: 40 5% 6%;
+    --secondary: 40 4% 13%;
+    --secondary-foreground: 40 10% 96%;
+    --muted: 40 4% 13%;
+    --muted-foreground: 40 5% 53%;
+    --accent: 40 4% 13%;
+    --accent-foreground: 40 10% 96%;
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 40 10% 96%;
+    --border: 40 5% 16%;
+    --input: 40 5% 16%;
+    --ring: 38 90% 48%;
+    --sidebar: 40 5% 8%;
+    --sidebar-foreground: 40 10% 96%;
+    --sidebar-border: 40 5% 16%;
+    --sidebar-accent: 40 4% 13%;
+    --sidebar-accent-foreground: 40 10% 96%;
+    --sidebar-primary: 38 90% 48%;
+    --sidebar-primary-foreground: 40 5% 6%;
+    --sidebar-ring: 38 90% 48%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Scrollbar: hidden by default, show on hover/focus */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 9999px;
+    transition: background-color 0.2s ease;
+  }
+
+  *:hover {
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  *:hover::-webkit-scrollbar-thumb,
+  *:focus-within::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+  }
+}
+
+@layer components {
+  .badge {
+    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+
+  .badge-gray {
+    @apply border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+
+  .badge-success {
+    @apply border-transparent bg-green-500 text-primary-foreground hover:bg-green-500/80;
+  }
+
+  .badge-warning {
+    @apply border-yellow-200 bg-transparent text-yellow-600;
+  }
+
+  .badge-error {
+    @apply border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@layer utilities {
+  .animate-page-enter {
+    animation: page-enter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-card-enter {
+    animation: card-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .animate-card-enter-delay-1 {
+    animation-delay: 0.05s;
+  }
+
+  .animate-card-enter-delay-2 {
+    animation-delay: 0.1s;
+  }
+
+  .animate-card-enter-delay-3 {
+    animation-delay: 0.15s;
+  }
+}

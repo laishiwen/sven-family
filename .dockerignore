@@ -1,0 +1,16 @@
+.git
+.gitignore
+.vscode
+.claude
+.logs
+.turbo
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/build
+**/.venv
+**/__pycache__
+**/*.pyc
+studio/desktop/runtime
+studio/desktop/release

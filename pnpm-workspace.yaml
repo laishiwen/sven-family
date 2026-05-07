@@ -1,0 +1,16 @@
+packages:
+  - "frontend/*"
+  - "studio/frontend"
+  - "studio/desktop"
+
+allowBuilds:
+  electron: true
+  esbuild: false
+  protobufjs: true
+  sharp: true
+
+onlyBuiltDependencies:
+  - esbuild
+  - electron
+  - protobufjs
+  - sharp

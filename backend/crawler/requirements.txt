@@ -1,0 +1,9 @@
+httpx>=0.28
+beautifulsoup4>=4.12
+apscheduler>=3.10
+redis>=5.0
+markdownify>=0.12
+feedparser>=6.0
+python-dotenv>=1.0
+pydantic>=2.0
+pydantic-settings>=2.0

@@ -1,0 +1,149 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis-server-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_dev:/data
+    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-db-dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  community-backend:
+    build:
+      context: ./community-backend
+    container_name: community-backend-dev
+    command: ["python", "run.py"]
+    ports:
+      - "50051:50051"
+    environment:
+      APP_MODE: public
+      APP_HOST: 0.0.0.0
+      APP_PORT: 50051
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-123456}@postgres:5432/community
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-community-dev-jwt-secret}
+      COMMUNITY_CORS_ORIGINS: ${COMMUNITY_CORS_ORIGINS:-["http://localhost:3002","http://localhost:5174"]}
+    volumes:
+      - ./community-backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  community-admin:
+    build:
+      context: ./community-backend
+    container_name: community-admin-dev
+    command:
+      [
+        "uvicorn",
+        "server:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "50052",
+        "--reload",
+      ]
+    ports:
+      - "50052:50052"
+    environment:
+      APP_MODE: admin
+      APP_HOST: 0.0.0.0
+      APP_PORT: 50052
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-123456}@postgres:5432/community
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-community-dev-jwt-secret}
+    volumes:
+      - ./community-backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      community-backend:
+        condition: service_started
+
+  admin-backend:
+    build:
+      context: ./admin-backend
+    container_name: admin-backend-dev
+    command: ["python", "run.py"]
+    ports:
+      - "8001:8001"
+    environment:
+      HOST: 0.0.0.0
+      API_PORT: 8001
+      API_RELOAD: "true"
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-123456}@postgres:5432/butler
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-production}
+      ADMIN_CORS_ORIGINS: ${ADMIN_CORS_ORIGINS:-["http://localhost:5174","http://localhost:3002"]}
+      COMMUNITY_BRIDGE_URL: ${COMMUNITY_BRIDGE_URL:-http://community-admin:50052}
+      CRAWLER_SERVICE_URL: ${CRAWLER_SERVICE_URL:-http://crawler:9100}
+      STATS_SERVICE_URL: ${STATS_SERVICE_URL:-http://stats-service:8002}
+    volumes:
+      - ./admin-backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      community-admin:
+        condition: service_started
+
+  crawler:
+    build:
+      context: ./crawler
+    container_name: crawler-dev
+    command: ["python", "run.py"]
+    ports:
+      - "9100:9100"
+    environment:
+      COMMUNITY_BRIDGE_URL: ${COMMUNITY_BRIDGE_URL:-http://community-admin:50052}
+      REDIS_URL: redis://redis:6379/0
+      CRAWLER_LOG_LEVEL: ${CRAWLER_LOG_LEVEL:-INFO}
+    volumes:
+      - ./crawler:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      community-admin:
+        condition: service_started
+
+  stats-service:
+    build:
+      context: ./stats-service
+    container_name: stats-service-dev
+    command: ["python", "run.py"]
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-123456}@postgres:5432/butler
+      STATS_CORS_ORIGINS: ${STATS_CORS_ORIGINS:-["http://localhost:3000","http://localhost:3001","http://localhost:3002","http://localhost:5174"]}
+    volumes:
+      - ./stats-service:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data_dev:
+  redis_data_dev:

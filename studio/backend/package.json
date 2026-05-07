@@ -1,0 +1,9 @@
+{
+  "name": "@sven-studio/api",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "uv run python run.py",
+    "install:python": "uv sync",
+    "test": "uv run --extra dev python -m pytest"
+  }
+}

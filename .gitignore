@@ -1,0 +1,59 @@
+# Sven Studio - 本地优先 AI Agent 开发平台
+
+# Node
+node_modules/
+.yarn
+
+# Build outputs
+dist/
+.next/
+build/
+dist/
+
+# Python
+__pycache__/
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Data (runtime)
+data/
+studio/backend/data/managed_runtime/
+*.db
+*.db-shm
+*.db-wal
+
+# Electron
+studio/desktop/release/
+studio/desktop/dist-electron/
+studio/desktop/runtime/
+
+# Turbo
+.turbo/
+
+# Coverage
+coverage/
+.logs/
+
+.claude/
+
+.playwright-cli
+
+.pnpm-store

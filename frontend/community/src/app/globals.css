@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #fafaf8;
+    --foreground: #1a1a18;
+    --card: #ffffff;
+    --card-foreground: #1a1a18;
+    --border: #e8e8e2;
+    --muted: #f3f3f0;
+    --muted-foreground: #696961;
+    --primary: #d97706;
+    --primary-foreground: #ffffff;
+    --accent: #fef3c7;
+    --accent-foreground: #b45309;
+    --ring: #d97706;
+    --radius: 0.75rem;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  .dark {
+    --background: #121210;
+    --foreground: #f5f5f3;
+    --card: #1c1c1a;
+    --card-foreground: #f5f5f3;
+    --border: #2a2a25;
+    --muted: #1c1c1a;
+    --muted-foreground: #8a8a82;
+    --primary: #f59e0b;
+    --primary-foreground: #121210;
+    --accent: #451a03;
+    --accent-foreground: #fde68a;
+    --ring: #f59e0b;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Scrollbar: hidden by default, show on hover/focus */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 9999px;
+    transition: background-color 0.2s ease;
+  }
+
+  *:hover {
+    scrollbar-color: var(--border) transparent;
+  }
+
+  *:hover::-webkit-scrollbar-thumb,
+  *:focus-within::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+  }
+}
+
+/* Markdown content styling */
+.prose pre {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.prose code {
+  background: var(--muted);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+}

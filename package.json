@@ -1,0 +1,44 @@
+{
+  "name": "sven-family",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.0.8",
+  "workspaces": [
+    "studio/*",
+    "frontend/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "dev:docker": "docker compose up -d --build && until curl -s -o /dev/null http://localhost:3000; do echo 'Waiting for studio-web (port 3000)...'; sleep 2; done && turbo run dev --filter=@sven-studio/desktop --parallel",
+    "dev:front": "turbo run dev --parallel",
+    "dev:back": "pnpm dev:api & pnpm dev:admin-api & pnpm dev:community-backend & pnpm dev:crawler & pnpm dev:stats",
+    "dev:studio": "pnpm --filter @sven-studio/web dev",
+    "dev:api": "cd studio/backend && uv run python run.py",
+    "dev:community": "pnpm --filter sven-community dev",
+    "dev:site": "pnpm --filter @sven-studio/landing dev",
+    "dev:admin": "pnpm --filter @sven/admin-frontend dev",
+    "dev:admin-api": "cd backend/admin-backend && uv run python run.py",
+    "dev:community-backend": "cd backend/community-backend && uv run python run.py",
+    "dev:crawler": "cd backend/crawler && uv run python run.py",
+    "dev:stats": "cd backend/stats-service && uv run python run.py",
+    "dev:stop": "lsof -i :3000 -i :3001 -i :3002 -i :5174 -i :8000 -i :8001 -i :8002 -i :50051 -i :9100 -t | xargs kill -9 2>/dev/null; echo 'All dev services stopped.'",
+    "build": "turbo run build",
+    "build:studio": "pnpm --filter @sven-studio/web build",
+    "build:community": "pnpm --filter sven-community build",
+    "build:site": "pnpm --filter @sven-studio/landing build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.3.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=11.0.0"
+  }
+}
