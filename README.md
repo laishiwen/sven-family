@@ -31,13 +31,14 @@
 
 Sven Family combines four product experiences with shared backend services:
 
-| Module        | Description                                                           |
-| ------------- | --------------------------------------------------------------------- |
-| **Studio**    | Build and run AI workflows in a visual editor (web + desktop)         |
-| **Community** | Knowledge sharing and team discussions                                |
-| **Site**      | Publish product-facing pages and content experiences                  |
-| **Admin**     | Operate content, users, data, and services from a unified dashboard   |
-| **Butler**    | Backend services for crawling, stats, and cross-service orchestration |
+| Module        | Description                                                         |
+| ------------- | ------------------------------------------------------------------- |
+| **Studio**    | Build and run AI workflows in a visual editor (web + desktop)       |
+| **Community** | Knowledge sharing and team discussions                              |
+| **Site**      | Publish product-facing pages and content experiences                |
+| **Admin**     | Operate content, users, data, and services from a unified dashboard |
+| **Crawler**   | Data collection and ingestion pipeline                              |
+| **Stats**     | Usage analytics and metrics aggregation                             |
 
 Core value:
 
@@ -61,9 +62,9 @@ Core value:
 
 ![Site](assets/images/site.png)
 
-### Butler
+### Admin
 
-![Butler](assets/images/butler.png)
+![Admin](assets/images/admin.png)
 
 ---
 
@@ -125,13 +126,19 @@ pnpm install
 
 ### 2. Environment Configuration
 
-Copy the example environment files for the backend services you plan to run:
+Copy the example environment files for the backend and frontend services you plan to run:
 
 ```bash
+# Backend
 cp backend/admin-backend/.env.example backend/admin-backend/.env
 cp backend/community-backend/.env.example backend/community-backend/.env
 cp backend/crawler/.env.example backend/crawler/.env
 cp backend/stats-service/.env.example backend/stats-service/.env
+
+# Frontend
+cp frontend/community/.env.example frontend/community/.env
+cp frontend/site/.env.example frontend/site/.env
+cp studio/frontend/.env.example studio/frontend/.env
 ```
 
 Edit each `.env` file with your local database credentials and secrets.
@@ -146,21 +153,22 @@ docker compose up -d postgres redis
 
 ```bash
 cd backend/admin-backend && uv run alembic upgrade head
+cd ../community-backend && uv run alembic upgrade head
 ```
 
 ### 5. Start Development
 
 ```bash
-# Start everything (requires all .env files configured)
+# Start all frontends
 pnpm dev
 
-# Start Studio only (web + API)
+# Start Studio (web + API)
 pnpm dev:studio:full
 
-# Frontend only
+# Start all frontends
 pnpm dev:front
 
-# Backend services only
+# Start all backend services
 pnpm dev:back
 
 # Start with Docker Compose (full stack)
@@ -197,7 +205,7 @@ pnpm dev:stop
 | Admin Frontend  | 5174  | Admin dashboard         |
 | Admin API       | 8001  | Admin backend           |
 | Stats Service   | 8002  | Analytics API           |
-| Data Collection | 9100  | Data collection service |
+| Crawler         | 9100  | Data collection service |
 | PostgreSQL      | 5432  | Primary database        |
 | Redis           | 6379  | Cache & queue           |
 

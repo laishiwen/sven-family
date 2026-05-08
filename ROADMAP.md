@@ -4,6 +4,9 @@ This document outlines the planned direction for Sven Family. Priorities may shi
 
 ## Q2 2026
 
+- [x] Auto-detect production services with health-check fallback in Studio
+- [x] Community frontend production deployment (Vercel)
+- [x] Standardize frontend env configuration across all packages
 - [ ] Improve cross-service observability and distributed tracing
 - [ ] Standardize API contracts and integration tests across systems
 - [ ] Enhance test coverage for core backend and frontend modules

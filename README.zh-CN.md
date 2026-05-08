@@ -37,7 +37,8 @@ Sven Family 将四款产品体验与共享后端服务整合为一体：
 | **Community** | 知识沉淀与团队社区协作                     |
 | **Site**      | 对外发布产品页面与内容体验                 |
 | **Admin**     | 统一管理后台：内容、用户、数据与服务运营   |
-| **Butler**    | 后端服务基座：数据采集、统计、跨服务编排   |
+| **Crawler**   | 数据采集与内容入库管线                     |
+| **Stats**     | 使用分析与指标聚合服务                     |
 
 核心价值：
 
@@ -61,9 +62,9 @@ Sven Family 将四款产品体验与共享后端服务整合为一体：
 
 ![Site](assets/images/site.png)
 
-### Butler
+### Admin
 
-![Butler](assets/images/butler.png)
+![Admin](assets/images/admin.png)
 
 ---
 
@@ -125,13 +126,19 @@ pnpm install
 
 ### 2. 配置环境变量
 
-为需要启动的后端服务复制示例环境变量文件：
+为需要启动的后端与前端服务复制示例环境变量文件：
 
 ```bash
+# 后端
 cp backend/admin-backend/.env.example backend/admin-backend/.env
 cp backend/community-backend/.env.example backend/community-backend/.env
 cp backend/crawler/.env.example backend/crawler/.env
 cp backend/stats-service/.env.example backend/stats-service/.env
+
+# 前端
+cp frontend/community/.env.example frontend/community/.env
+cp frontend/site/.env.example frontend/site/.env
+cp studio/frontend/.env.example studio/frontend/.env
 ```
 
 根据本地环境编辑各 `.env` 文件中的数据库连接信息与密钥。
@@ -146,21 +153,22 @@ docker compose up -d postgres redis
 
 ```bash
 cd backend/admin-backend && uv run alembic upgrade head
+cd ../community-backend && uv run alembic upgrade head
 ```
 
 ### 5. 启动开发环境
 
 ```bash
-# 启动全部（需先配置所有 .env 文件）
+# 启动全部前端
 pnpm dev
 
-# 仅启动 Studio（Web + API）
+# 启动 Studio（Web + API）
 pnpm dev:studio:full
 
-# 仅启动前端
+# 启动全部前端
 pnpm dev:front
 
-# 仅启动后端服务
+# 启动全部后端服务
 pnpm dev:back
 
 # 使用 Docker Compose 启动全栈
@@ -197,7 +205,7 @@ pnpm dev:stop
 | Admin Frontend  | 5174  | 管理后台前端   |
 | Admin API       | 8001  | 管理后台 API   |
 | Stats Service   | 8002  | 统计分析 API   |
-| 数据采集        | 9100  | 数据采集服务   |
+| Crawler         | 9100  | 数据采集服务   |
 | PostgreSQL      | 5432  | 主数据库       |
 | Redis           | 6379  | 缓存与消息队列 |
 
