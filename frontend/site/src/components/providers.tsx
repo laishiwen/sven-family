@@ -17,14 +17,15 @@ export function Providers({ children }: { children: ReactNode }) {
   useEffect(() => {
     setLocale(getInitialLocale());
 
-    // Initialize analytics tracker
     const statsApiUrl = process.env.NEXT_PUBLIC_STATS_API_URL;
-    initAnalytics({
-      apiUrl: statsApiUrl,
-      batchSize: 10,
-      flushInterval: 5000,
-      enableLogging: process.env.NODE_ENV === "development",
-    });
+    if (statsApiUrl) {
+      initAnalytics({
+        apiUrl: statsApiUrl,
+        batchSize: 10,
+        flushInterval: 5000,
+        enableLogging: process.env.NODE_ENV === "development",
+      });
+    }
 
     setMounted(true);
   }, []);

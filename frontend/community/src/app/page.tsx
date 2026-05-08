@@ -230,7 +230,9 @@ function TopicList() {
       if (append) {
         setTopics((prev) => {
           const existingIds = new Set(prev.map((item) => item.id));
-          const deduped = incoming.filter((item) => !existingIds.has(item.id));
+          const deduped = incoming.filter(
+            (item: TopicItem) => !existingIds.has(item.id),
+          );
           return [...prev, ...deduped];
         });
       } else {
