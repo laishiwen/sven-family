@@ -4,7 +4,7 @@
  * No user-facing notifications on success or failure.
  */
 
-const STATS_URL = (typeof window !== "undefined" && (window as any).__STATS_API_URL__) || "http://localhost:8002";
+import { getStatsUrl } from "@/lib/external-services";
 
 interface DesktopEvent {
   type: "app_open";
@@ -54,11 +54,10 @@ function getSessionId(): string {
 let lastPagePath = "";
 const seenKeys = new Set<string>();
 
-export function trackAppOpen(pagePath?: string) {
+export async function trackAppOpen(pagePath?: string) {
   if (typeof window === "undefined") return;
 
   const path = pagePath || window.location.pathname;
-  // Dedup within session: same page within 1 hour = single event
   const hourKey = `${path}_${Math.floor(Date.now() / 3600000)}`;
   if (seenKeys.has(hourKey)) return;
   seenKeys.add(hourKey);
@@ -77,12 +76,14 @@ export function trackAppOpen(pagePath?: string) {
     session_id: getSessionId(),
   });
 
+  const statsUrl = await getStatsUrl();
+
   try {
     if (navigator.sendBeacon) {
       const blob = new Blob([payload], { type: "application/json" });
-      navigator.sendBeacon(`${STATS_URL}/api/v1/track/event`, blob);
+      navigator.sendBeacon(`${statsUrl}/api/v1/track/event`, blob);
     } else {
-      fetch(`${STATS_URL}/api/v1/track/event`, {
+      fetch(`${statsUrl}/api/v1/track/event`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: payload,
@@ -99,5 +100,5 @@ export function trackAppOpen(pagePath?: string) {
  */
 export function initDesktopTracking() {
   if (typeof window === "undefined") return;
-  trackAppOpen();
+  void trackAppOpen();
 }

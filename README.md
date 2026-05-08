@@ -31,13 +31,13 @@
 
 Sven Family combines four product experiences with shared backend services:
 
-| Module | Description |
-|--------|-------------|
-| **Studio** | Build and run AI workflows in a visual editor (web + desktop) |
-| **Community** | Knowledge sharing and team discussions |
-| **Site** | Publish product-facing pages and content experiences |
-| **Admin** | Operate content, users, data, and services from a unified dashboard |
-| **Butler** | Backend services for crawling, stats, and cross-service orchestration |
+| Module        | Description                                                           |
+| ------------- | --------------------------------------------------------------------- |
+| **Studio**    | Build and run AI workflows in a visual editor (web + desktop)         |
+| **Community** | Knowledge sharing and team discussions                                |
+| **Site**      | Publish product-facing pages and content experiences                  |
+| **Admin**     | Operate content, users, data, and services from a unified dashboard   |
+| **Butler**    | Backend services for crawling, stats, and cross-service orchestration |
 
 Core value:
 
@@ -91,16 +91,16 @@ sven/
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Monorepo** | Turborepo + pnpm workspace |
-| **Frontend** | Next.js, React, Vite, Tailwind CSS, TypeScript |
-| **Desktop** | Electron |
-| **Backend** | Python 3.11+, FastAPI, SQLAlchemy (async) |
-| **Database** | PostgreSQL 15 |
-| **Cache** | Redis 7 |
-| **Migrations** | Alembic |
-| **DevOps** | Docker, Docker Compose |
+| Layer          | Technology                                     |
+| -------------- | ---------------------------------------------- |
+| **Monorepo**   | Turborepo + pnpm workspace                     |
+| **Frontend**   | Next.js, React, Vite, Tailwind CSS, TypeScript |
+| **Desktop**    | Electron                                       |
+| **Backend**    | Python 3.11+, FastAPI, SQLAlchemy (async)      |
+| **Database**   | PostgreSQL 15                                  |
+| **Cache**      | Redis 7                                        |
+| **Migrations** | Alembic                                        |
+| **DevOps**     | Docker, Docker Compose                         |
 
 ---
 
@@ -154,6 +154,9 @@ cd backend/admin-backend && uv run alembic upgrade head
 # Start everything (requires all .env files configured)
 pnpm dev
 
+# Start Studio only (web + API)
+pnpm dev:studio:full
+
 # Frontend only
 pnpm dev:front
 
@@ -166,12 +169,12 @@ pnpm dev:docker
 
 ### 6. Access the Apps
 
-| App | URL |
-|-----|-----|
-| Studio | http://localhost:3000 |
-| Site | http://localhost:3001 |
+| App       | URL                   |
+| --------- | --------------------- |
+| Studio    | http://localhost:3000 |
+| Site      | http://localhost:3001 |
 | Community | http://localhost:3002 |
-| Admin | http://localhost:5174 |
+| Admin     | http://localhost:5174 |
 
 ### Stop Services
 
@@ -183,20 +186,20 @@ pnpm dev:stop
 
 ## Service Map
 
-| Service | Port | Description |
-|---------|------|-------------|
-| Studio Web | 3000 | Studio frontend |
-| Studio API | 8000 | Studio backend |
-| Site | 3001 | Landing / product site |
-| Community | 3002 | Community frontend |
-| Community API | 50051 | Community public API |
-| Community Admin | 50052 | Community admin API |
-| Admin Frontend | 5174 | Admin dashboard |
-| Admin API | 8001 | Admin backend |
-| Stats Service | 8002 | Analytics API |
-| Data Collection | 9100 | Data collection service |
-| PostgreSQL | 5432 | Primary database |
-| Redis | 6379 | Cache & queue |
+| Service         | Port  | Description             |
+| --------------- | ----- | ----------------------- |
+| Studio Web      | 3000  | Studio frontend         |
+| Studio API      | 8000  | Studio backend          |
+| Site            | 3001  | Landing / product site  |
+| Community       | 3002  | Community frontend      |
+| Community API   | 50051 | Community public API    |
+| Community Admin | 50052 | Community admin API     |
+| Admin Frontend  | 5174  | Admin dashboard         |
+| Admin API       | 8001  | Admin backend           |
+| Stats Service   | 8002  | Analytics API           |
+| Data Collection | 9100  | Data collection service |
+| PostgreSQL      | 5432  | Primary database        |
+| Redis           | 6379  | Cache & queue           |
 
 ---
 

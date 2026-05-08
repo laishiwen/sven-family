@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/stores/appStore";
-
-const COMMUNITY_URL =
-  import.meta.env.VITE_COMMUNITY_URL;
+import { useStudioConfig } from "@/components/providers/StudioConfigProvider";
 
 export default function CommunityPage() {
   const { theme, locale } = useAppStore();
+  const { communityUrl } = useStudioConfig();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const loadedRef = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +20,7 @@ export default function CommunityPage() {
     return theme;
   }, [theme]);
 
-  const src = `${COMMUNITY_URL}?sven_theme=${resolvedTheme}&sven_locale=${locale}`;
+  const src = `${communityUrl}?sven_theme=${resolvedTheme}&sven_locale=${locale}`;
 
   useEffect(() => {
     loadedRef.current = false;

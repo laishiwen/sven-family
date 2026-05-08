@@ -31,13 +31,13 @@
 
 Sven Family 将四款产品体验与共享后端服务整合为一体：
 
-| 模块 | 说明 |
-|------|------|
-| **Studio** | 可视化构建与运行 AI 工作流（Web + 桌面端） |
-| **Community** | 知识沉淀与团队社区协作 |
-| **Site** | 对外发布产品页面与内容体验 |
-| **Admin** | 统一管理后台：内容、用户、数据与服务运营 |
-| **Butler** | 后端服务基座：数据采集、统计、跨服务编排 |
+| 模块          | 说明                                       |
+| ------------- | ------------------------------------------ |
+| **Studio**    | 可视化构建与运行 AI 工作流（Web + 桌面端） |
+| **Community** | 知识沉淀与团队社区协作                     |
+| **Site**      | 对外发布产品页面与内容体验                 |
+| **Admin**     | 统一管理后台：内容、用户、数据与服务运营   |
+| **Butler**    | 后端服务基座：数据采集、统计、跨服务编排   |
 
 核心价值：
 
@@ -91,16 +91,16 @@ sven/
 
 ## 技术栈
 
-| 层级 | 技术 |
-|------|------|
-| **Monorepo** | Turborepo + pnpm workspace |
-| **前端** | Next.js、React、Vite、Tailwind CSS、TypeScript |
-| **桌面端** | Electron |
-| **后端** | Python 3.11+、FastAPI、SQLAlchemy（异步） |
-| **数据库** | PostgreSQL 15 |
-| **缓存** | Redis 7 |
-| **数据迁移** | Alembic |
-| **DevOps** | Docker、Docker Compose |
+| 层级         | 技术                                           |
+| ------------ | ---------------------------------------------- |
+| **Monorepo** | Turborepo + pnpm workspace                     |
+| **前端**     | Next.js、React、Vite、Tailwind CSS、TypeScript |
+| **桌面端**   | Electron                                       |
+| **后端**     | Python 3.11+、FastAPI、SQLAlchemy（异步）      |
+| **数据库**   | PostgreSQL 15                                  |
+| **缓存**     | Redis 7                                        |
+| **数据迁移** | Alembic                                        |
+| **DevOps**   | Docker、Docker Compose                         |
 
 ---
 
@@ -154,6 +154,9 @@ cd backend/admin-backend && uv run alembic upgrade head
 # 启动全部（需先配置所有 .env 文件）
 pnpm dev
 
+# 仅启动 Studio（Web + API）
+pnpm dev:studio:full
+
 # 仅启动前端
 pnpm dev:front
 
@@ -166,12 +169,12 @@ pnpm dev:docker
 
 ### 6. 访问应用
 
-| 应用 | 地址 |
-|------|------|
-| Studio | http://localhost:3000 |
-| Site | http://localhost:3001 |
+| 应用      | 地址                  |
+| --------- | --------------------- |
+| Studio    | http://localhost:3000 |
+| Site      | http://localhost:3001 |
 | Community | http://localhost:3002 |
-| Admin | http://localhost:5174 |
+| Admin     | http://localhost:5174 |
 
 ### 停止服务
 
@@ -183,20 +186,20 @@ pnpm dev:stop
 
 ## 服务端口
 
-| 服务 | 端口 | 说明 |
-|------|------|------|
-| Studio Web | 3000 | Studio 前端 |
-| Studio API | 8000 | Studio 后端 |
-| Site | 3001 | 官网 / 产品站 |
-| Community | 3002 | 社区前端 |
-| Community API | 50051 | 社区公开 API |
-| Community Admin | 50052 | 社区管理 API |
-| Admin Frontend | 5174 | 管理后台前端 |
-| Admin API | 8001 | 管理后台 API |
-| Stats Service | 8002 | 统计分析 API |
-| 数据采集 | 9100 | 数据采集服务 |
-| PostgreSQL | 5432 | 主数据库 |
-| Redis | 6379 | 缓存与消息队列 |
+| 服务            | 端口  | 说明           |
+| --------------- | ----- | -------------- |
+| Studio Web      | 3000  | Studio 前端    |
+| Studio API      | 8000  | Studio 后端    |
+| Site            | 3001  | 官网 / 产品站  |
+| Community       | 3002  | 社区前端       |
+| Community API   | 50051 | 社区公开 API   |
+| Community Admin | 50052 | 社区管理 API   |
+| Admin Frontend  | 5174  | 管理后台前端   |
+| Admin API       | 8001  | 管理后台 API   |
+| Stats Service   | 8002  | 统计分析 API   |
+| 数据采集        | 9100  | 数据采集服务   |
+| PostgreSQL      | 5432  | 主数据库       |
+| Redis           | 6379  | 缓存与消息队列 |
 
 ---
 

@@ -13,6 +13,8 @@
     "dev:front": "turbo run dev --parallel",
     "dev:back": "pnpm dev:api & pnpm dev:admin-api & pnpm dev:community-backend & pnpm dev:crawler & pnpm dev:stats",
     "dev:studio": "pnpm --filter @sven-studio/web dev",
+    "dev:studio:full": "pnpm dev:api & pnpm dev:studio",
+    "dev:studio:all": "pnpm dev:api & pnpm dev:studio & pnpm --dir studio/desktop dev",
     "dev:api": "cd studio/backend && uv run python run.py",
     "dev:community": "pnpm --filter sven-community dev",
     "dev:site": "pnpm --filter @sven-studio/landing dev",

@@ -10,6 +10,7 @@ import Layout from "@/components/layout/Layout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ToastContainer } from "@/components/ToastContainer";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { StudioConfigProvider } from "@/components/providers/StudioConfigProvider";
 
 // Pages — lazy loaded to isolate module-level errors per page
 const DashboardPage = lazy(() => import("@/pages/dashboard/DashboardPage"));
@@ -97,8 +98,9 @@ export default function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <BrowserRouter
+        <StudioConfigProvider>
+          <TooltipProvider>
+            <BrowserRouter
             future={{
               v7_startTransition: true,
               v7_relativeSplatPath: true,
@@ -270,8 +272,9 @@ export default function App() {
               </Route>
             </Routes>
           </BrowserRouter>
-        </TooltipProvider>
-        <ToastContainer />
+          </TooltipProvider>
+          <ToastContainer />
+        </StudioConfigProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );
