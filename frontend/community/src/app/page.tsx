@@ -173,6 +173,7 @@ function TopicList() {
       if (raw) {
         const cache = JSON.parse(raw);
         if (Date.now() - cache.timestamp < CACHE_TTL) {
+          if (Array.isArray(cache.sections)) setSections(cache.sections);
           setTopics(cache.topics);
           setPage(cache.page);
           setHasMore(cache.hasMore);
@@ -431,6 +432,7 @@ function TopicList() {
                       CACHE_KEY,
                       JSON.stringify({
                         topics,
+                        sections,
                         page,
                         hasMore,
                         selectedSection,
