@@ -23,18 +23,39 @@ const themes = [
   { key: "system", icon: Monitor, label: "System" },
 ] as const;
 
+function formatStars(count: number): string {
+  if (count >= 1000) {
+    return (count / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+  }
+  return String(count);
+}
+
 export function Header() {
   const { locale, t, setLocale } = useI18n();
   const { theme, setTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const [starCount, setStarCount] = useState<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const repo = process.env.NEXT_PUBLIC_GITHUB_REPO;
+    if (!repo) return;
+    fetch(`https://api.github.com/repos/${repo}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (typeof data.stargazers_count === "number") {
+          setStarCount(data.stargazers_count);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   if (!mounted) return null;
@@ -68,12 +89,17 @@ export function Header() {
         <div className="flex items-center gap-2 sm:gap-3">
           {/* GitHub stars */}
           <a
-            href="#"
+            target="_blank"
+            href={process.env.NEXT_PUBLIC_GITHUB_URL || "#"}
             className="hidden items-center gap-1.5 rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-1.5 text-sm font-medium transition-all hover:border-amber-400/30 hover:bg-amber-500/[0.04] sm:inline-flex"
           >
             <Github className="h-4 w-4" />
             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-            <span className="tabular-nums">12.8k</span>
+            {starCount != null && (
+              <span className="tabular-nums" title={String(starCount)}>
+                {formatStars(starCount)}
+              </span>
+            )}
           </a>
 
           {/* Theme switcher */}
