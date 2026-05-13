@@ -26,6 +26,9 @@ export function Hero() {
   const { t } = useI18n();
   const [os, setOs] = useState<ReturnType<typeof detectOS>>("unknown");
   const sectionRef = useRef<HTMLDivElement>(null);
+  const downloadUrl =
+    process.env.NEXT_PUBLIC_GITHUB_URL ||
+    "https://github.com/laishiwen/sven-family";
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -56,6 +59,9 @@ export function Hero() {
 
   const osIcon = os === "windows" ? Monitor : os === "linux" ? Terminal : Apple;
   const OsIconComponent = osIcon;
+  const handleDownload = () => {
+    window.open(downloadUrl, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <section
@@ -131,6 +137,7 @@ export function Hero() {
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
+              onClick={handleDownload}
               className="group relative flex items-center gap-2.5 overflow-hidden rounded-xl bg-gradient-brand px-6 py-3 font-semibold text-white shadow-2xl shadow-amber-500/20 transition-shadow hover:shadow-amber-500/30 sm:px-8 sm:py-4 sm:rounded-2xl"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
