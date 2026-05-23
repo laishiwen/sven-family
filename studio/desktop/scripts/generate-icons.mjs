@@ -97,10 +97,14 @@ function generateMacIcon(source) {
   ];
 
   for (const { name, size } of sizes) {
-    run(`sips -z ${size} ${size} '${source}' --out '${path.join(iconset, name)}'`);
+    run(
+      `sips -z ${size} ${size} '${source}' --out '${path.join(iconset, name)}'`,
+    );
   }
 
-  run(`iconutil -c icns '${iconset}' -o '${path.join(assetsDir, "icon.icns")}'`);
+  run(
+    `iconutil -c icns '${iconset}' -o '${path.join(assetsDir, "icon.icns")}'`,
+  );
   fs.rmSync(iconset, { recursive: true, force: true });
   console.log(`[icons] Generated icon.icns`);
 }
@@ -144,6 +148,12 @@ function generateLinuxIcon(source) {
   console.log(`[icons] Generated icon.png`);
 }
 
+function generateTrayIcon(source) {
+  const out = path.join(assetsDir, "tray-icon.png");
+  run(`sips -z 32 32 '${source}' --out '${out}'`);
+  console.log(`[icons] Generated tray-icon.png`);
+}
+
 // ── Main ────────────────────────────────────────────────────────────────────
 const source = ensureSource();
 
@@ -159,17 +169,20 @@ if (process.platform === "darwin") {
     console.warn("[icons] Windows icon generation skipped:", e.message);
   }
   generateLinuxIcon(source);
+  generateTrayIcon(source);
 } else {
   console.log(
     "[icons] On non-macOS, generate icons on macOS or manually convert.",
   );
   console.log("[icons] macOS:  iconutil -c icns icon.iconset");
-  console.log("[icons] Windows: convert icon-1024.png -define icon:auto-resize icon.ico");
+  console.log(
+    "[icons] Windows: convert icon-1024.png -define icon:auto-resize icon.ico",
+  );
   console.log("[icons] Linux:  cp icon-1024.png icon.png");
 }
 
 console.log("[icons] Done. Files in assets/:");
 for (const f of fs.readdirSync(assetsDir)) {
-  if (f.startsWith("icon.") || f.startsWith("_"))
+  if (f.startsWith("icon.") || f.startsWith("tray-icon") || f.startsWith("_"))
     console.log(`  ${f} (${fs.statSync(path.join(assetsDir, f)).size} bytes)`);
 }

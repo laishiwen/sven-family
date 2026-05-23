@@ -4,6 +4,11 @@
   "private": true,
   "productName": "Sven Studio",
   "description": "Sven Studio",
+  "homepage": "https://github.com/laishiwen/sven-family",
+  "author": {
+    "name": "Sven Studio",
+    "email": "laishiwen7@gmail.com"
+  },
   "main": "dist/main.js",
   "scripts": {
     "dev": "concurrently \"tsc -p tsconfig.json --watch\" \"wait-on dist/main.js tcp:${VITE_DEV_PORT:-3000} && ELECTRON_DEV=true electron .\"",
@@ -12,6 +17,7 @@
     "electron:dev": "ELECTRON_DEV=true electron .",
     "start": "concurrently \"pnpm dev\" \"wait-on tcp:${VITE_DEV_PORT:-3000} && ELECTRON_DEV=true electron .\"",
     "prepare:runtime:current": "node ./scripts/prepare-runtime-current.mjs",
+    "generate:icons": "node ./scripts/generate-icons.mjs",
     "precheck:runtime:current": "node ./scripts/precheck-runtime.mjs --current --enforce",
     "precheck:runtime:report": "node ./scripts/precheck-runtime.mjs --all",
     "dist:local:verify": "pnpm dist:local && pnpm verify:package",
@@ -52,9 +58,18 @@
         "to": "api",
         "filter": [
           "**/*",
+          "!**/.venv/**",
+          "!**/.git/**",
+          "!**/.mypy_cache/**",
+          "!**/.pytest_cache/**",
+          "!**/.ruff_cache/**",
+          "!**/.cache/**",
+          "!**/.DS_Store",
+          "!**/*.log",
           "!node_modules/**",
           "!**/__pycache__/**",
-          "!**/*.pyc"
+          "!**/*.pyc",
+          "!tests/**"
         ]
       },
       {
@@ -110,6 +125,8 @@
     "linux": {
       "icon": "assets/icon.png",
       "category": "Development",
+      "maintainer": "laishiwen7@gmail.com",
+      "artifactName": "sven-studio-desktop-${version}-${arch}.${ext}",
       "target": [
         "AppImage",
         "deb"

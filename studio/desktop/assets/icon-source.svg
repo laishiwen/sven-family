@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="140" y1="80" x2="900" y2="940" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B3B72" />
+      <stop offset="0.55" stop-color="#0A6FB6" />
+      <stop offset="1" stop-color="#11A8B5" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(240 180) rotate(40) scale(560 480)">
+      <stop stop-color="#8CE1FF" stop-opacity="0.44" />
+      <stop offset="1" stop-color="#8CE1FF" stop-opacity="0" />
+    </radialGradient>
+    <filter id="shadow" x="180" y="170" width="680" height="740" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="20" stdDeviation="28" flood-color="#06213D" flood-opacity="0.42" />
+    </filter>
+  </defs>
+
+  <rect x="36" y="36" width="952" height="952" rx="220" fill="url(#bg)" />
+  <rect x="36" y="36" width="952" height="952" rx="220" fill="url(#glow)" />
+
+  <g filter="url(#shadow)">
+    <path d="M 712 298 C 687 234 626 193 533 193 C 409 193 333 257 333 351 C 333 445 405 490 530 528 C 611 554 657 572 657 620 C 657 669 609 703 534 703 C 453 703 400 665 372 592 L 260 642 C 310 760 406 829 531 829 C 673 829 770 747 770 624 C 770 501 675 455 559 419 C 466 390 446 365 446 331 C 446 295 479 269 533 269 C 590 269 621 294 640 338 L 712 298 Z" fill="#FFFFFF" />
+  </g>
+
+  <circle cx="782" cy="248" r="44" fill="#FFD17C" fill-opacity="0.9" />
+</svg>
