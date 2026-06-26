@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
@@ -10,7 +10,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { capabilitiesApi, storeApi } from "@/lib/api";
+import { capabilitiesApi, settingsApi, storeApi } from "@/lib/api";
 import { useToastStore } from "@/stores/toastStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -108,6 +108,72 @@ function isVectorService(service: any): boolean {
 function prettyDate(value?: string | null, locale?: string, fallback?: string) {
   if (!value) return fallback || "-";
   return new Date(value).toLocaleString(locale);
+}
+
+function isAbsolutePath(value: string): boolean {
+  return value.startsWith("/") || /^[A-Za-z]:[\\/]/.test(value);
+}
+
+function inferHomeDirFromUserDataPath(userDataPath: string): string {
+  const normalized = String(userDataPath || "").replace(/\\/g, "/");
+  if (!normalized) return "";
+  const macIndex = normalized.indexOf("/Library/");
+  if (macIndex > 0) return normalized.slice(0, macIndex);
+  const winIndex = normalized.indexOf("/AppData/");
+  if (winIndex > 1) return normalized.slice(0, winIndex);
+  const linuxIndex = normalized.indexOf("/.config/");
+  if (linuxIndex > 0) return normalized.slice(0, linuxIndex);
+  const parts = normalized.split("/").filter(Boolean);
+  if (parts.length <= 1) return normalized;
+  return normalized.startsWith("/")
+    ? `/${parts.slice(0, -1).join("/")}`
+    : parts.slice(0, -1).join("/");
+}
+
+function toAbsolutePath(value: string, fallbackBase: string): string {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const base = String(fallbackBase || "").trim();
+  if (raw === "~") return base || "";
+  if (raw.startsWith("~/")) {
+    return base ? `${base.replace(/\/$/, "")}/${raw.slice(2)}` : raw;
+  }
+  if (raw.startsWith("file://")) {
+    return decodeURIComponent(raw.replace(/^file:\/\//, ""));
+  }
+  if (isAbsolutePath(raw)) {
+    return raw;
+  }
+  if (!base) return raw;
+  return `${base.replace(/\/$/, "")}/${raw.replace(/^\.\//, "")}`;
+}
+
+function resolveStorageFilePath(
+  svc: any,
+  dataDir: string,
+  sqlitePath: string,
+  milvusPath: string,
+): string {
+  const serviceType = String(svc?.service_type || "").toLowerCase();
+  const explicit = String(svc?.connection_url || "").trim();
+  const isUrl = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(explicit);
+
+  if (explicit && !isUrl) {
+    return toAbsolutePath(explicit, dataDir);
+  }
+  if (serviceType === "sqlite" && sqlitePath) {
+    return toAbsolutePath(sqlitePath, dataDir);
+  }
+  if (serviceType === "milvus" && milvusPath) {
+    return toAbsolutePath(milvusPath, dataDir);
+  }
+
+  const base = toAbsolutePath(dataDir, dataDir);
+  if (!base) return "";
+  const idPart = String(svc?.id || svc?.name || "service")
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-");
+  return `${base.replace(/\/$/, "")}/store/${serviceType || "service"}/${idPart}.data`;
 }
 
 function AddServiceModal({
@@ -251,10 +317,12 @@ function ServiceCard({
   svc,
   onHealthCheck,
   databaseServiceCount,
+  storageFilePath,
 }: {
   svc: any;
   onHealthCheck: (id: string) => void;
   databaseServiceCount: number;
+  storageFilePath: string;
 }) {
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
@@ -307,11 +375,9 @@ function ServiceCard({
                 {svc.service_type}
               </Badge>
             </div>
-            {svc.connection_url && (
-              <p className="text-xs font-mono text-muted-foreground mt-0.5 truncate max-w-[200px]">
-                {svc.connection_url}
-              </p>
-            )}
+            <p className="text-xs font-mono text-muted-foreground mt-0.5 break-all">
+              {t("store.file-path")}: {storageFilePath}
+            </p>
             {svc.last_checked_at && (
               <p className="text-xs text-muted-foreground mt-0.5">
                 {t("store.last-check")}:{" "}
@@ -416,6 +482,30 @@ export default function StorePage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
+  const [homeDir, setHomeDir] = useState("");
+  const [desktopDataDir, setDesktopDataDir] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    const loadDesktopPaths = async () => {
+      try {
+        const info = await window.__electron__?.getInfo?.();
+        if (active && info?.dataDir) {
+          setDesktopDataDir(String(info.dataDir).trim());
+        }
+        const userDataPath = await window.__electron__?.getUserDataPath?.();
+        if (!active || !userDataPath) return;
+        const home = inferHomeDirFromUserDataPath(userDataPath);
+        if (home) setHomeDir(home);
+      } catch {
+        // Ignore and keep runtime-derived paths.
+      }
+    };
+    void loadDesktopPaths();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const { data: capabilities } = useQuery({
     queryKey: ["capabilities", "store"],
@@ -424,6 +514,14 @@ export default function StorePage() {
   const { data: services = [] } = useQuery({
     queryKey: ["store-services"],
     queryFn: () => storeApi.list().then((r) => r.data),
+  });
+  const { data: runtimeInfo = {} } = useQuery({
+    queryKey: ["settings-runtime"],
+    queryFn: () => settingsApi.getRuntime().then((r) => r.data),
+  });
+  const { data: envInfo = [] } = useQuery({
+    queryKey: ["settings-environment"],
+    queryFn: () => settingsApi.getEnvironment().then((r) => r.data),
   });
   const healthMut = useMutation({
     mutationFn: (id: string) => storeApi.healthCheck(id),
@@ -441,6 +539,27 @@ export default function StorePage() {
     );
   const total = displayServices.length;
   const databaseServiceCount = displayServices.filter(isDatabaseService).length;
+  const runtime = runtimeInfo as any;
+  const envMap = (envInfo as any[]).reduce(
+    (acc, item) => {
+      if (item?.key && item?.value_preview) acc[item.key] = item.value_preview;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+  const rawDataDir = String(
+    desktopDataDir || envMap.APP_DATA_DIR || runtime.data_dir || "~/.sven",
+  ).trim();
+  const dataDir = toAbsolutePath(rawDataDir, homeDir);
+  const baseDir = dataDir.replace(/\/$/, "");
+  const sqlitePath = String(
+    (baseDir ? `${baseDir}/sven_studio.db` : "") || runtime.sqlite_path || "",
+  ).trim();
+  const milvusPath = String(
+    (baseDir ? `${baseDir}/vector_store/milvus_lite.db` : "") ||
+      envMap.MILVUS_LITE_PATH ||
+      "",
+  ).trim();
 
   return (
     <div className="pt-4 px-6 pb-6 space-y-5">
@@ -474,14 +593,23 @@ export default function StorePage() {
                 </div>
               ) : (
                 <div className="grid md:grid-cols-2 gap-2">
-                  {list.map((svc: any, i: number) => (
-                    <ServiceCard
-                      key={svc.id || i}
-                      svc={svc}
-                      onHealthCheck={(id) => healthMut.mutate(id)}
-                      databaseServiceCount={databaseServiceCount}
-                    />
-                  ))}
+                  {list.map((svc: any, i: number) => {
+                    const storageFilePath = resolveStorageFilePath(
+                      svc,
+                      dataDir,
+                      sqlitePath,
+                      milvusPath,
+                    );
+                    return (
+                      <ServiceCard
+                        key={svc.id || i}
+                        svc={svc}
+                        onHealthCheck={(id) => healthMut.mutate(id)}
+                        databaseServiceCount={databaseServiceCount}
+                        storageFilePath={storageFilePath}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </TabsContent>
