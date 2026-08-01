@@ -18,7 +18,7 @@ class Provider(SQLModel, table=True):
     __tablename__ = "providers"
     id: str = Field(default_factory=gen_id, primary_key=True)
     name: str
-    provider_type: str  # openai | anthropic | ollama | custom
+    provider_type: str  # openai | atlascloud | anthropic | google | ollama | custom
     base_url: Optional[str] = None
     api_key_encrypted: Optional[str] = None
     gateway_type: Optional[str] = None
