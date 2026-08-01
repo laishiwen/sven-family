@@ -53,11 +53,19 @@ import {
 
 const PROVIDER_TYPES = [
   { value: "openai", label: "OpenAI" },
+  { value: "atlascloud", label: "Atlas Cloud" },
   { value: "anthropic", label: "Anthropic" },
   { value: "google", label: "Google AI" },
   { value: "ollama", label: "provider.ollama-local" },
   { value: "custom", label: "provider.custom" },
 ];
+
+const PROVIDER_PRESETS: Record<string, { name: string; base_url: string }> = {
+  atlascloud: {
+    name: "Atlas Cloud",
+    base_url: "https://api.atlascloud.ai/v1",
+  },
+};
 
 const EMPTY_PROVIDER_FORM = {
   name: "",
@@ -341,7 +349,9 @@ function ProviderForm({
           <Label>{t("type")}</Label>
           <Select
             value={form.provider_type}
-            onValueChange={(v) => onChange({ provider_type: v })}
+            onValueChange={(v) =>
+              onChange({ provider_type: v, ...(PROVIDER_PRESETS[v] || {}) })
+            }
           >
             <SelectTrigger>
               <SelectValue />

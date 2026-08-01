@@ -16,6 +16,7 @@ export type ProviderRecord = {
 
 export const PROVIDER_TYPE_LABELS: Record<string, string> = {
   openai: "OpenAI",
+  atlascloud: "Atlas Cloud",
   anthropic: "Anthropic",
   google: "Google AI",
   ollama: "Ollama",

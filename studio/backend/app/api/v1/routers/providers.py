@@ -85,6 +85,7 @@ async def health_check_provider(provider_id: str, session: AsyncSession = Depend
     # Pick a quick test model based on provider type
     test_model_map = {
         "openai": "gpt-4o-mini",
+        "atlascloud": "deepseek-ai/deepseek-v4-pro",
         "anthropic": "claude-3-5-haiku-20241022",
         "google": "gemini-1.5-flash",
         "ollama": "ollama/llama3.2",
@@ -176,6 +177,7 @@ async def get_model_catalog():
     """Return a built-in model catalog"""
     catalog = [
         {"provider": "openai", "models": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"]},
+        {"provider": "atlascloud", "models": ["deepseek-ai/deepseek-v4-pro", "google/gemini-2.5-flash"]},
         {"provider": "anthropic", "models": ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022"]},
         {"provider": "google", "models": ["gemini-1.5-pro", "gemini-1.5-flash"]},
         {"provider": "ollama", "models": ["llama3.2", "mistral", "qwen2.5"]},
